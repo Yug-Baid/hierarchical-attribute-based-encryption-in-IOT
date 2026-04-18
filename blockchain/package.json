@@ -1,0 +1,16 @@
+{
+  "name": "habe-blockchain",
+  "version": "1.0.0",
+  "description": "Hyperledger Besu smart contracts for HABE IIoT",
+  "scripts": {
+    "deploy": "node scripts/deploy.js",
+    "test":   "node test/contract.test.js"
+  },
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "solc":   "^0.8.24"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

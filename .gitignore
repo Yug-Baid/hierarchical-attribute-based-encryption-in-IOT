@@ -1,0 +1,54 @@
+# ─── Node.js ───────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+
+# ─── Environment / Secrets ─────────────────────────────────────────────────
+.env
+.env.*
+!.env.example          
+
+# ─── Blockchain ────────────────────────────────────────────────────────────
+blockchain/data/        
+blockchain/config/networkFiles/   
+blockchain/config/node_key       
+blockchain/config/deployment.json 
+
+# ─── HABE Engine (compiled binaries) ───────────────────────────────────────
+habe/habe_cli
+habe/habe_demo
+habe/demo/main
+habe/*.o
+habe/src/*.o
+habe/cli/*.o
+habe/demo/*.o
+
+# ─── API ────────────────────────────────────────────────────────────────────
+api/storage/*.bin       
+api/bulletins.json      
+api/logs/               
+
+# ─── ML ─────────────────────────────────────────────────────────────────────
+ml/venv/               
+ml/model.joblib         
+ml/model_meta.json      
+ml/training_data.csv    
+ml/__pycache__/
+ml/*.pyc
+
+# ─── Python general ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ─── OS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Editor ─────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
