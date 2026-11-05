@@ -48,6 +48,12 @@ export const API_SERVICE = {
   deleteFile: (fileId, ownerAddr) =>
     api.delete(`/data/${fileId}`, { data: { ownerAddr } }),
 
+  // Storage Tamper & Integrity (Gate 1 Real Disk Verification)
+  tamperFile: (fileId, offset = 8) => api.post('/data/tamper', { fileId, offset }),
+  restoreFile: (fileId) => api.post('/data/restore', { fileId }),
+  getFileStatus: (fileId) => api.get(`/data/status/${fileId}`),
+  getStoredFiles: () => api.get('/data/files'),
+
   // Bulletins (Gate 3)
   registerBulletin: (data) => api.post('/bulletin/register', data),
   getBulletin: (userAddr) => api.get(`/bulletin/${userAddr}`),

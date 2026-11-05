@@ -95,6 +95,8 @@ export default function DecryptionPortal({ onTriggerToast }) {
         gate: status === 409 ? 'Gate 1 (Blockchain Integrity)' : status === 403 ? 'Gate 2 (HABE Policy / Bilinear Match)' : 'System Gate',
         message: data?.error || err.message,
         detail: data?.detail || '',
+        chainHash: data?.chainHash,
+        localHash: data?.localHash,
       });
       onTriggerToast(`Decryption denied by ${status === 409 ? 'Gate 1' : 'Gate 2'}`);
     } finally {
@@ -419,6 +421,22 @@ export default function DecryptionPortal({ onTriggerToast }) {
               {errorInfo.detail && (
                 <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-200 text-[11px] font-mono text-rose-900">
                   {errorInfo.detail}
+                </div>
+              )}
+              {errorInfo.chainHash && errorInfo.localHash && (
+                <div className="p-3.5 rounded-xl bg-neutral-900 text-white font-mono text-[11px] space-y-2 shadow-inner border border-neutral-800">
+                  <div className="flex items-center justify-between border-b border-neutral-800 pb-1.5">
+                    <span className="text-rose-400 font-bold uppercase tracking-wider text-[10px]">Gate 1 Integrity Mismatch Trap</span>
+                    <span className="text-neutral-400 text-[10px]">Hyperledger Besu Gate</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-400 text-[10px] block">Immutable Besu Chain Hash:</span>
+                    <span className="text-emerald-400 break-all">{errorInfo.chainHash}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-400 text-[10px] block">Corrupted Off-Chain Disk Hash:</span>
+                    <span className="text-rose-400 break-all">{errorInfo.localHash}</span>
+                  </div>
                 </div>
               )}
             </div>

@@ -212,9 +212,13 @@ router.get('/:fileId', asyncWrap(async (req, res) => {
     });
     return res.status(409).json({
       ok:    false,
-      error: 'Integrity check failed: ciphertext tampered',
+      error: 'Integrity check failed: ciphertext tampered on disk',
       fileId,
       recordId: fileId,
+      gate: 'Gate 1 (Blockchain Integrity)',
+      localHash,
+      chainHash: chainRecord.hash,
+      detail: 'On-chain Besu anchor does not match local file hash. Decryption halted before evaluating bilinear pairings.'
     });
   }
 
@@ -280,6 +284,94 @@ router.delete('/:fileId', asyncWrap(async (req, res) => {
   });
 
   res.json({ ok: true, deleted: fileId });
+}));
+
+/* -----------------------------------------------------------------------
+ * POST /data/tamper — Injects byte corruption on disk for testing Gate 1
+ * ----------------------------------------------------------------------- */
+router.post('/tamper', asyncWrap(async (req, res) => {
+  const { fileId, recordId, offset } = req.body;
+  const id = recordId || fileId;
+  if (!id) return res.status(400).json({ ok: false, error: 'fileId or recordId required' });
+
+  const result = await storage.tamperCT(id, offset !== undefined ? parseInt(offset, 10) : 8);
+  const chainRecord = await blockchain.getHash(id).catch(() => null);
+
+  await blockchain.auditLog('tamperSimulated', {
+    fileId: id,
+    tamperedHash: result.tamperedHash,
+    chainHash: chainRecord ? chainRecord.hash : result.originalHash,
+  });
+
+  res.json({
+    ok: true,
+    fileId: id,
+    originalHash: result.originalHash,
+    tamperedHash: result.tamperedHash,
+    chainHash: chainRecord ? chainRecord.hash : result.originalHash,
+    isTampered: true,
+  });
+}));
+
+/* -----------------------------------------------------------------------
+ * POST /data/restore — Restores pristine ciphertext from backup
+ * ----------------------------------------------------------------------- */
+router.post('/restore', asyncWrap(async (req, res) => {
+  const { fileId, recordId } = req.body;
+  const id = recordId || fileId;
+  if (!id) return res.status(400).json({ ok: false, error: 'fileId or recordId required' });
+
+  const result = await storage.restoreCT(id);
+  const chainRecord = await blockchain.getHash(id).catch(() => null);
+
+  await blockchain.auditLog('tamperRestored', {
+    fileId: id,
+    hash: result.hash,
+  });
+
+  res.json({
+    ok: true,
+    fileId: id,
+    hash: result.hash,
+    chainHash: chainRecord ? chainRecord.hash : result.hash,
+    isTampered: false,
+  });
+}));
+
+/* -----------------------------------------------------------------------
+ * GET /data/status/:fileId — Checks on-chain hash vs disk hash
+ * ----------------------------------------------------------------------- */
+router.get('/status/:fileId', asyncWrap(async (req, res) => {
+  const { fileId } = req.params;
+  try {
+    const ct_hex = await storage.readCT(fileId);
+    const localHash = storage.hashCT(ct_hex);
+    let chainRecord = null;
+    try {
+      chainRecord = await blockchain.getHash(fileId);
+    } catch (_) {}
+
+    const isTampered = storage.isCTTampered(fileId) || (chainRecord && localHash !== chainRecord.hash);
+
+    res.json({
+      ok: true,
+      fileId,
+      chainHash: chainRecord ? chainRecord.hash : localHash,
+      localHash,
+      isTampered: !!isTampered,
+      meta: chainRecord ? chainRecord.meta : null,
+    });
+  } catch (err) {
+    res.status(404).json({ ok: false, error: err.message });
+  }
+}));
+
+/* -----------------------------------------------------------------------
+ * GET /data/files — Lists all stored files
+ * ----------------------------------------------------------------------- */
+router.get('/files', asyncWrap(async (req, res) => {
+  const files = storage.listStoredFiles();
+  res.json({ ok: true, files });
 }));
 
 module.exports = router;
