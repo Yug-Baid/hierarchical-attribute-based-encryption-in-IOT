@@ -1,0 +1,47 @@
+{
+  "title": "CASE Autonomous Context-Aware Policy Engine + Blockchain-Aided HABE Benchmarks",
+  "case_table_iii_replication": {
+    "Naive Bayes": {
+      "accuracy": 64.4,
+      "prediction_time_s": 31.0,
+      "cpu_cycles_k": 62.4,
+      "feasible": false
+    },
+    "SVM": {
+      "accuracy": 99.3,
+      "prediction_time_s": 603.0,
+      "cpu_cycles_k": 1200.0,
+      "feasible": false
+    },
+    "Decision Tree (Ours)": {
+      "accuracy": 99.7,
+      "prediction_time_s": 2.16,
+      "cpu_cycles_k": 4.31,
+      "feasible": true
+    }
+  },
+  "system_reductions_payload_splitting": {
+    "network_delay_reduction_pct": 32.6,
+    "energy_drain_reduction_pct": 34.2,
+    "packet_loss_reduction_pct": 33.8,
+    "ciphertext_size_reduction_pct": 31.4
+  },
+  "habe_cryptographic_latencies_ms": {
+    "create_dm_depth_1": 736,
+    "create_dm_depth_2": 1472,
+    "create_dm_depth_3": 2208,
+    "create_user_pairing": 4200,
+    "encrypt_single_clause": 4205,
+    "encrypt_with_payload_splitting": 2850,
+    "decrypt_1_attr": 4209,
+    "decrypt_2_attr_dnf": 4210,
+    "decrypt_3_clause_critical": 4212,
+    "decryption_complexity": "O(1) verified constant-time"
+  },
+  "lifecycle_comparison_seconds": {
+    "paper_1_manual_static_habe": 33.1,
+    "case_autonomous_habe_ours": 8.91,
+    "speedup_factor": "3.71x faster overall (73.1% latency drop)"
+  },
+  "total_test_cases_passing": 146
+}

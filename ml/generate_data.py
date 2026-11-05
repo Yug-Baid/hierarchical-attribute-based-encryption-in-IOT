@@ -222,8 +222,8 @@ def generate() -> pd.DataFrame:
     # 300 clean samples, no noise — anchors the exact boundary the RF was missing
     aug_rows = []
     dm_aug = "company/plantA/areaA1"
-    for hour in [20, 21, 22, 23]:
-        for _ in range(75):  # 75 × 4 hours = 300 samples
+    for hour in [0, 1, 2, 3, 4, 5, 20, 21, 22, 23]:
+        for _ in range(30):  # 30 × 10 hours = 300 samples
             aug_rows.append(make_row(
                 role="technician",
                 location="areaA1",

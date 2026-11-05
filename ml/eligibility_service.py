@@ -37,12 +37,14 @@ from flask import Flask, jsonify, request
 MODEL_DIR = Path(__file__).parent
 _clf  = None
 _meta = None
+_sensor_clf = None
 
 
 def load_model():
-    global _clf, _meta
+    global _clf, _meta, _sensor_clf
     model_path = MODEL_DIR / "model.joblib"
     meta_path  = MODEL_DIR / "model_meta.json"
+    sensor_model_path = MODEL_DIR / "models" / "sensor_policy_dt.pkl"
 
     if not model_path.exists():
         raise RuntimeError(f"model.joblib not found at {model_path} — run train_model.py first")
@@ -52,6 +54,12 @@ def load_model():
         _meta = json.load(f)
 
     print(f"[eligibility] Model loaded: {_clf.n_estimators} trees, features={_meta['features']}", flush=True)
+
+    if sensor_model_path.exists():
+        _sensor_clf = joblib.load(sensor_model_path)
+        print(f"[eligibility] Sensor policy Decision Tree loaded from {sensor_model_path}", flush=True)
+    else:
+        print(f"[eligibility] Warning: sensor_policy_dt.pkl not found at {sensor_model_path}", flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -220,10 +228,22 @@ def build_reason(features: np.ndarray, eligible: bool, proba: float) -> str:
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
+
+
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"ok": True, "model_loaded": _clf is not None})
+    return jsonify({
+        "ok": True,
+        "model_loaded": _clf is not None,
+        "sensor_model_loaded": _sensor_clf is not None
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -303,6 +323,70 @@ def score():
     return jsonify({"ml_scores": ml_scores})
 
 
+
+# ---------------------------------------------------------------------------
+# POST /predict_policy — CASE Autonomous Context-Aware Policy Generation
+# ---------------------------------------------------------------------------
+SENSOR_STATES = {0: "NORMAL", 1: "WARNING", 2: "CRITICAL"}
+
+
+@app.route("/predict_policy", methods=["POST"])
+def predict_policy():
+    if _sensor_clf is None:
+        return jsonify({"error": "sensor policy model not loaded"}), 503
+
+    body = request.get_json(silent=True)
+    if body is None:
+        return jsonify({"error": "request body must be JSON"}), 400
+
+    plant_id = body.get("plantId")
+    area_id = body.get("areaId")
+    telemetry = body.get("telemetry")
+
+    if not plant_id or not isinstance(plant_id, str):
+        return jsonify({"error": "plantId is required and must be a string"}), 400
+    if not area_id or not isinstance(area_id, str):
+        return jsonify({"error": "areaId is required and must be a string"}), 400
+    if not isinstance(telemetry, dict):
+        return jsonify({"error": "telemetry must be an object with temperature, vibration, pressure, gas_ppm"}), 400
+
+    required_metrics = ["temperature", "vibration", "pressure", "gas_ppm"]
+    missing = [m for m in required_metrics if m not in telemetry]
+    if missing:
+        return jsonify({"error": f"missing telemetry metric(s): {missing}"}), 400
+
+    try:
+        temp = float(telemetry["temperature"])
+        vib = float(telemetry["vibration"])
+        press = float(telemetry["pressure"])
+        gas = float(telemetry["gas_ppm"])
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": f"telemetry values must be numeric: {e}"}), 400
+
+    X = np.array([[temp, vib, press, gas]], dtype=np.float32)
+    pred_class = int(_sensor_clf.predict(X)[0])
+    predicted_state = SENSOR_STATES.get(pred_class, "NORMAL")
+
+    if area_id.startswith(plant_id + "/"):
+        area_path = area_id
+    elif area_id.startswith("/"):
+        area_path = f"{plant_id}{area_id}"
+    else:
+        area_path = f"{plant_id}/{area_id}"
+
+    if predicted_state == "NORMAL":
+        dynamic_policy = f"({area_path} AND sensor_data) OR ({plant_id} AND manager)"
+    elif predicted_state == "WARNING":
+        dynamic_policy = f"({area_path} AND sensor_data) OR ({plant_id} AND maintenance_team) OR ({plant_id} AND manager)"
+    else:  # CRITICAL
+        dynamic_policy = f"({area_path} AND sensor_data) OR ({plant_id} AND manager) OR (company AND emergency_board)"
+
+    return jsonify({
+        "status": "success",
+        "predicted_state": predicted_state,
+        "dynamic_policy": dynamic_policy
+    })
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
@@ -315,4 +399,4 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("ELIGIBILITY_PORT", 5001))
     print(f"[eligibility] Listening on http://localhost:{port}", flush=True)
-    app.run(host="127.0.0.1", port=port, threaded=False)
+    app.run(host="0.0.0.0", port=port, threaded=False)

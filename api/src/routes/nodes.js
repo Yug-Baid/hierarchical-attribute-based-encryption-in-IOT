@@ -35,6 +35,14 @@ const blockchain = require('../services/blockchain');
 const { asyncWrap } = require('../middleware/errorHandler');
 const bulletin   = require('../services/bulletin');
 
+const issuedKeysStore = [];
+
+function recordIssuedKey(dm, user, attr, uskId) {
+  if (!issuedKeysStore.find(k => k.uskId === uskId)) {
+    issuedKeysStore.unshift({ dm, user, attr, uskId, issuedAt: new Date().toISOString() });
+  }
+}
+
 /* -----------------------------------------------------------------------
  * POST /register  — unchanged
  * ----------------------------------------------------------------------- */
@@ -131,6 +139,8 @@ router.post('/user', asyncWrap(async (req, res) => {
   // Eligible — issue key
   const result = await habe.createUser(dmAddr, userAddr, attrPk);
 
+  recordIssuedKey(dmAddr, userAddr, attrPk, result.usk_id);
+
   await blockchain.auditLog('userKeyIssued', {
     dmAddr, userAddr, attrPk, usk_id: result.usk_id,
   });
@@ -149,6 +159,10 @@ router.get('/', asyncWrap(async (req, res) => {
   res.json({ ok: true, nodes });
 }));
 
+router.get('/keys', (req, res) => {
+  res.json({ ok: true, keys: issuedKeysStore });
+});
+
 /* -----------------------------------------------------------------------
  * GET /nodes/:addr  — unchanged
  * ----------------------------------------------------------------------- */
@@ -158,3 +172,5 @@ router.get('/:addr', asyncWrap(async (req, res) => {
 }));
 
 module.exports = router;
+module.exports.recordIssuedKey = recordIssuedKey;
+module.exports.issuedKeysStore = issuedKeysStore;

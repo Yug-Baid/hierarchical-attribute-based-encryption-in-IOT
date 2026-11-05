@@ -152,7 +152,31 @@ class HABEEngine extends EventEmitter {
    *   policy.dm_pks   {string[]}   - DM PK string for each clause
    * @returns {Promise<{ct_hex: string}>}
    */
-  async encrypt(plaintext, policy) {
+  /**
+   * Encrypt plaintext under a DNF policy (object or DNF expression string).
+   * Supports both (plaintext, policy) and (dynamic_policy, payload).
+   */
+  async encrypt(arg1, arg2) {
+    let plaintext, policy;
+
+    const isPolicyLike = (val) => {
+      if (!val) return false;
+      if (typeof val === 'object' && !Buffer.isBuffer(val) && (val.clauses || val.dm_pks)) return true;
+      if (typeof val === 'string' && (val.includes(' AND ') || val.includes(' OR ') || val.includes('('))) return true;
+      return false;
+    };
+
+    if (isPolicyLike(arg1) && !isPolicyLike(arg2)) {
+      policy = arg1;
+      plaintext = arg2;
+    } else {
+      plaintext = arg1;
+      policy = arg2;
+    }
+
+    const { parseDnfPolicy } = require('./sensorPolicy');
+    const parsedPolicy = parseDnfPolicy(policy);
+
     /* Normalize plaintext to 32-byte zero-padded hex */
     let buf;
     if (Buffer.isBuffer(plaintext)) {
@@ -160,14 +184,14 @@ class HABEEngine extends EventEmitter {
       plaintext.copy(buf, 0, 0, Math.min(plaintext.length, 32));
     } else {
       buf = Buffer.alloc(32);
-      const src = Buffer.from(plaintext, 'utf8');
+      const src = Buffer.from(String(plaintext ?? ''), 'utf8');
       src.copy(buf, 0, 0, Math.min(src.length, 32));
     }
     return this._send({
       cmd:           'encrypt',
       plaintext_hex: buf.toString('hex'),
-      clauses:       policy.clauses,
-      dm_pks:        policy.dm_pks,
+      clauses:       parsedPolicy.clauses,
+      dm_pks:        parsedPolicy.dm_pks,
     });
   }
 

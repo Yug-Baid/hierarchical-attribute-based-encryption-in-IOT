@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFA Research Console & Live Engine — CVPR 2024 / IEEE</title>
+    <meta name="description" content="Dedicated interactive dashboard and computational workbench for Auxiliary Fourier-basis Augmentation (CVPR 2024) and Ada-SFA upgrades.">
+
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- KaTeX for Beautiful Mathematical Equation Typography -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Base Stylesheet & Components -->
+    <link rel="stylesheet" href="css/style.css?v=2.8">
+    <link rel="stylesheet" href="css/components.css?v=2.8">
+</head>
+<body class="bg-[#fcfbf9] text-neutral-900 antialiased font-sans flex min-h-screen selection:bg-neutral-950 selection:text-white">
+
+    <!-- ==================== FIXED LEFT SIDEBAR ==================== -->
+    <aside class="hidden w-64 flex-col border-r border-neutral-300/80 bg-[#f4f1eb] p-4 lg:flex sticky top-0 h-screen z-40 shrink-0 select-none">
+        <!-- Logo / Brand Header -->
+        <div class="mb-6 flex items-center gap-3 px-2">
+            <div class="h-8 w-8 rounded-xl bg-neutral-950 flex items-center justify-center font-mono text-sm font-bold text-white shadow-sm">
+                F
+            </div>
+            <div>
+                <span class="font-bold text-sm text-neutral-950 tracking-tight">Research Console</span>
+                <span class="block text-[10px] text-neutral-500 font-mono">CVPR 2024 / IEEE v2.4</span>
+            </div>
+        </div>
+
+        <!-- Navigation Menu Items -->
+        <nav class="space-y-1.5 text-xs sm:text-sm font-medium flex-1 overflow-y-auto pr-1">
+            <button class="nav-tab active" data-tab="tab-playground">
+                <span class="nav-tab-dot bg-blue-500"></span>
+                <span>AFA Playground</span>
+            </button>
+
+            <button class="nav-tab" data-tab="tab-upgrades">
+                <span class="nav-tab-dot bg-indigo-500"></span>
+                <span>Novel Upgrades (DSBC & PCCM)</span>
+            </button>
+
+            <button class="nav-tab" data-tab="tab-compare">
+                <span class="nav-tab-dot bg-purple-500"></span>
+                <span>Augmentation Suite</span>
+            </button>
+
+            <button class="nav-tab" data-tab="tab-dubn">
+                <span class="nav-tab-dot bg-emerald-500"></span>
+                <span>Dual Normalization</span>
+            </button>
+
+            <button class="nav-tab" data-tab="tab-heatmaps">
+                <span class="nav-tab-dot bg-amber-500"></span>
+                <span>Fourier Error Heatmaps</span>
+            </button>
+
+            <button class="nav-tab" data-tab="tab-benchmarks">
+                <span class="nav-tab-dot bg-rose-500"></span>
+                <span>Empirical Benchmarks</span>
+            </button>
+
+            <button class="nav-tab" data-tab="tab-inference">
+                <span class="nav-tab-dot bg-teal-500"></span>
+                <span>Live Model Inference</span>
+            </button>
+        </nav>
+
+        <!-- Bottom Authorship Chip -->
+        <div class="mt-auto border-t border-neutral-300/80 pt-4 flex items-center gap-3 px-2">
+            <div class="h-9 w-9 rounded-full bg-white border border-neutral-300 flex items-center justify-center font-bold text-xs text-neutral-900 shadow-sm shrink-0">
+                AI
+            </div>
+            <div class="overflow-hidden">
+                <span class="block text-xs font-semibold text-neutral-900 truncate">Research Team</span>
+                <span class="block text-[10px] text-neutral-500 truncate">Arpit, Yug, Zenith, Yuvraj</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#fcfbf9]">
+        
+        <!-- Top Bar Header -->
+        <header class="sticky top-0 z-30 border-b border-neutral-200/80 bg-white/80 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="lg:hidden">
+                    <a href="/" class="text-xs font-bold text-neutral-950 bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full border border-neutral-200 transition">← Home</a>
+                </div>
+                <div>
+                    <span class="text-[11px] font-mono font-semibold text-neutral-500 uppercase tracking-wider">Computational Console</span>
+                    <h1 class="text-lg sm:text-xl font-bold text-neutral-950 tracking-tight" id="dashboard-active-title">
+                        AFA Playground: Interactive Planar Wave Generator
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <a href="/" class="rounded-full border border-neutral-300 bg-white hover:bg-neutral-950 hover:text-white px-3.5 py-1.5 text-xs font-medium text-neutral-700 shadow-sm transition">
+                    ← Landing Page
+                </a>
+                <button id="btn-open-presentation" class="rounded-full border border-neutral-300 bg-white hover:bg-neutral-950 hover:text-white px-3.5 py-1.5 text-xs font-medium text-neutral-800 shadow-sm transition">
+                    Presentation Deck
+                </button>
+                <button onclick="App.onSampleChanged()" class="rounded-full bg-neutral-950 hover:bg-neutral-800 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition">
+                    Re-evaluate View
+                </button>
+            </div>
+        </header>
+
+        <div class="p-6 sm:p-8 max-w-7xl mx-auto w-full space-y-8">
+            
+            <!-- 4 Top KPI Summary Cards (Hero Card in Black, other 3 in Crisp White) -->
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <!-- 1. Primary Hero Card in Black -->
+                <div class="rounded-2xl border border-neutral-900 bg-neutral-950 p-5 shadow-sm hover:shadow-md transition text-white">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-medium text-neutral-400">ImageNet-C Robust Accuracy</p>
+                        <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 rounded-full px-2 py-0.5">+2.5%</span>
+                    </div>
+                    <p class="mt-2 text-3xl font-bold text-white tracking-tight font-mono">56.4%</p>
+                    <p class="mt-1 text-xs text-neutral-400 font-medium">ResNet-50 vs 53.9% AFA Baseline</p>
+                </div>
+
+                <!-- 2. White Card -->
+                <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-medium text-neutral-500">Mean Corruption Error (mCE)</p>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">-3.4%</span>
+                    </div>
+                    <p class="mt-2 text-3xl font-bold text-neutral-950 tracking-tight font-mono">55.8%</p>
+                    <p class="mt-1 text-xs text-neutral-500 font-medium">Relative error reduction</p>
+                </div>
+
+                <!-- 3. White Card -->
+                <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-medium text-neutral-500">Perturbation Flip Rate (mFR)</p>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">-3.6</span>
+                    </div>
+                    <p class="mt-2 text-3xl font-bold text-neutral-950 tracking-tight font-mono">36.8</p>
+                    <p class="mt-1 text-xs text-neutral-500 font-medium">ImageNet-P temporal stability</p>
+                </div>
+
+                <!-- 4. White Card -->
+                <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-medium text-neutral-500">Adversarial Compute Overhead</p>
+                        <span class="text-[10px] font-bold text-neutral-900 bg-neutral-100 border border-neutral-300 rounded-full px-2 py-0.5">0 ms</span>
+                    </div>
+                    <p class="mt-2 text-3xl font-bold text-neutral-950 tracking-tight font-mono">0 ms</p>
+                    <p class="mt-1 text-xs text-neutral-500 font-medium">Zero PGD backpropagation steps</p>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 1: AFA Playground ==================== -->
+            <section id="tab-playground" class="tab-content active">
+                <div class="grid gap-6 lg:grid-cols-[340px_1fr]">
+                    
+                    <!-- Left Column: Controls (White Card with Black Button) -->
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
+                            <div>
+                                <h3 class="font-bold text-sm text-neutral-950">Planar Wave Controls</h3>
+                                <p class="text-[11px] text-neutral-500">Additive Fourier-basis synthesizer</p>
+                            </div>
+                            <button class="rounded-full bg-neutral-950 hover:bg-neutral-800 px-3.5 py-1 text-xs font-semibold text-white shadow-sm transition" id="btn-randomize-afa">
+                                Randomize
+                            </button>
+                        </div>
+
+                        <!-- Sample Selection -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-medium text-neutral-700">Preset Sample Image</label>
+                            <select class="sample-image-select w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none"></select>
+                        </div>
+
+                        <!-- Custom Image Upload -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-medium text-neutral-700">Upload Custom Image</label>
+                            <input type="file" accept="image/*" class="custom-file-upload w-full rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-500 file:mr-2 file:rounded-lg file:border-0 file:bg-neutral-950 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-neutral-800 shadow-sm cursor-pointer">
+                        </div>
+
+                        <hr class="border-neutral-100">
+
+                        <!-- Sliders -->
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Frequency Group (f)</span>
+                                    <span class="font-mono text-neutral-950 font-bold bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-[11px]" id="val-freq">8.0 cycles</span>
+                                </div>
+                                <input type="range" id="slider-freq" class="w-full" min="1" max="24" step="0.5" value="8">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Phase Angle (&phi;)</span>
+                                    <span class="font-mono text-neutral-950 font-bold bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-[11px]" id="val-phi">45°</span>
+                                </div>
+                                <input type="range" id="slider-phi" class="w-full" min="0" max="3.1415" step="0.05" value="0.785">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Perturbation Strength (&lambda;)</span>
+                                    <span class="font-mono text-neutral-950 font-bold bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-[11px]" id="val-str">12.0</span>
+                                </div>
+                                <input type="range" id="slider-str" class="w-full" min="1" max="30" step="0.5" value="12">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Frequency Cuts (f_cut)</span>
+                                    <span class="font-mono text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-[11px]" id="val-fcut">1</span>
+                                </div>
+                                <input type="range" id="slider-fcut" class="w-full" min="1" max="4" step="1" value="1">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Phase Cuts (p_cut)</span>
+                                    <span class="font-mono text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-[11px]" id="val-pcut">1</span>
+                                </div>
+                                <input type="range" id="slider-pcut" class="w-full" min="1" max="4" step="1" value="1">
+                            </div>
+                        </div>
+
+                        <!-- Realtime Norm & Strength Badges -->
+                        <div class="flex gap-2 pt-2">
+                            <span class="rounded-full bg-neutral-100 border border-neutral-200 px-3 py-1 text-[11px] font-mono font-medium text-neutral-700" id="badge-l2-norm">L2 Norm: 2.50</span>
+                            <span class="rounded-full bg-neutral-100 border border-neutral-200 px-3 py-1 text-[11px] font-mono font-medium text-neutral-700" id="badge-sampled-str">Str: 12.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Visual Outputs & Spectra -->
+                    <div class="space-y-6">
+                        
+                        <!-- 4 Image Tiles Grid (White Cards) -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-3 shadow-sm hover:shadow-md transition">
+                                <span class="block text-xs font-semibold text-neutral-600 mb-2">1. Clean Input</span>
+                                <div class="aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                                    <img id="img-clean" src="" alt="Clean Image" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-3 shadow-sm hover:shadow-md transition">
+                                <span class="block text-xs font-semibold text-neutral-600 mb-2">2. Additive Wave</span>
+                                <div class="aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                                    <img id="img-wave" src="" alt="Additive Wave Pattern" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+
+                            <div class="rounded-2xl border-2 border-blue-500/40 bg-blue-50/20 p-3 shadow-sm hover:shadow-md transition">
+                                <span class="block text-xs font-semibold text-blue-700 mb-2">3. AFA Output (CVPR '24)</span>
+                                <div class="aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-blue-200">
+                                    <img id="img-aug" src="" alt="AFA Augmented" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-3 shadow-sm hover:shadow-md transition">
+                                <span class="block text-xs font-semibold text-neutral-600 mb-2">4. Spectral Shift</span>
+                                <div class="aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                                    <img id="img-diff-fft" src="" alt="Spectral Shift" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2D FFT Magnitude Spectra & Radial Energy (White Cards) -->
+                        <div class="grid md:grid-cols-2 gap-6">
+                            
+                            <!-- 2D FFT Spectra (White Card) -->
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-4">
+                                <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+                                    <h4 class="font-bold text-sm text-neutral-950">2D Fourier Magnitude Spectra</h4>
+                                    <span class="text-[10px] font-mono text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-full">Log-Scale</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <p class="text-[11px] text-neutral-500 mb-1.5 text-center font-medium">Clean FFT Spectrum</p>
+                                        <div class="aspect-square rounded-xl overflow-hidden bg-black border border-neutral-200 shadow-inner">
+                                            <img id="img-clean-fft" src="" alt="Clean Spectrum" class="w-full h-full object-cover">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] text-neutral-500 mb-1.5 text-center font-medium">AFA Perturbed Spectrum</p>
+                                        <div class="aspect-square rounded-xl overflow-hidden bg-black border border-neutral-200 shadow-inner">
+                                            <img id="img-aug-fft" src="" alt="Augmented Spectrum" class="w-full h-full object-cover">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Radial Power Distribution (White Card) -->
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-4 flex flex-col justify-between">
+                                <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+                                    <h4 class="font-bold text-sm text-neutral-950">Spectral Energy Distribution</h4>
+                                    <span class="text-[10px] font-mono text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-full px-2.5 py-0.5 font-semibold">Radial Bands</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-3 gap-2.5 text-center">
+                                    <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200/80 p-3">
+                                        <p class="text-[10px] uppercase font-bold text-neutral-500">Low Band</p>
+                                        <p class="text-sm font-bold text-neutral-950 mt-1 font-mono" id="clean-low-pct">--%</p>
+                                        <p class="text-[10px] text-emerald-600 font-mono font-bold mt-0.5" id="delta-low">+0%</p>
+                                    </div>
+                                    <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200/80 p-3">
+                                        <p class="text-[10px] uppercase font-bold text-neutral-500">Mid Band</p>
+                                        <p class="text-sm font-bold text-neutral-950 mt-1 font-mono" id="clean-mid-pct">--%</p>
+                                        <p class="text-[10px] text-blue-600 font-mono font-bold mt-0.5" id="delta-mid">+0%</p>
+                                    </div>
+                                    <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200/80 p-3">
+                                        <p class="text-[10px] uppercase font-bold text-neutral-500">High Band</p>
+                                        <p class="text-sm font-bold text-neutral-950 mt-1 font-mono" id="clean-high-pct">--%</p>
+                                        <p class="text-[10px] text-purple-600 font-mono font-bold mt-0.5" id="delta-high">+0%</p>
+                                    </div>
+                                </div>
+
+                                <div class="text-[11px] text-neutral-600 leading-relaxed bg-[#f8f7f4] p-3.5 rounded-xl border border-neutral-200/80">
+                                    AFA injects controlled sinusoidal impulses directly across mid-and-high frequencies, filling frequency blindspots without causing catastrophic high-frequency aliasing.
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==================== TAB 2: Novel Upgrades (DSBC & PCCM) ==================== -->
+            <section id="tab-upgrades" class="tab-content">
+                <!-- Banner (White Card with Black Button) -->
+                <div class="rounded-2xl border border-blue-200/90 bg-gradient-to-r from-blue-50/80 via-white to-white p-6 shadow-sm mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-[10px] font-bold tracking-wider uppercase text-blue-700 bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                                    Novel Contributions
+                                </span>
+                                <span class="text-xs text-neutral-600 font-mono font-medium">Arpit Kumar, Yug Baid, Zenith Gupta, Yuvraj Singh</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-neutral-950 tracking-tight">Beyond Uniform Gratings: DSBC & PCCM Upgrades</h2>
+                            <p class="text-xs text-neutral-600 mt-1 max-w-3xl leading-relaxed">
+                                Dynamic Spectral Band Curriculum (DSBC) guides training from coarse to fine frequencies, while Phase-Coherent Cross-Channel Modulation (PCCM) eliminates chromatic rainbow artifacts.
+                            </p>
+                        </div>
+                        <button class="shrink-0 rounded-full bg-neutral-950 hover:bg-neutral-800 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition" id="btn-run-upgrades-compare">
+                            Run 4-Way Mode Evaluation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-[340px_1fr]">
+                    <!-- Left: Controls (White Card with Black Buttons) -->
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
+                            <h3 class="font-bold text-sm text-neutral-950">Upgrade Parameters</h3>
+                            <button class="rounded-full bg-neutral-950 hover:bg-neutral-800 px-3.5 py-1 text-xs font-semibold text-white shadow-sm transition" id="btn-randomize-upgrades">
+                                Randomize
+                            </button>
+                        </div>
+
+                        <!-- Sample Image Select -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-medium text-neutral-700">Sample Image</label>
+                            <select class="sample-image-select w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none" id="upgrades-sample-select"></select>
+                        </div>
+
+                        <!-- Upgrade 1: DSBC -->
+                        <div class="rounded-xl bg-blue-50/50 border border-blue-200 p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-blue-900">Upgrade 1: DSBC Curriculum</span>
+                                <span class="text-[10px] font-mono text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-semibold" id="badge-dsbc-bounds">f ∈ [1.0, 36.7]</span>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Training Epoch</span>
+                                    <span class="font-mono text-blue-900 font-bold" id="val-upg-epoch">Epoch 25 / 100</span>
+                                </div>
+                                <input type="range" id="slider-upg-epoch" class="w-full" min="1" max="100" step="1" value="25">
+                            </div>
+
+                            <p class="text-[11px] text-neutral-600">
+                                Power-Law Index: <strong id="val-upg-alpha" class="text-neutral-950 font-mono font-bold">&alpha; = 0.875</strong> (Structural Image Bias)
+                            </p>
+                        </div>
+
+                        <!-- Upgrade 2: PCCM -->
+                        <div class="rounded-xl bg-emerald-50/50 border border-emerald-200 p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-emerald-900">Upgrade 2: PCCM Phase Coherence</span>
+                                <span class="text-[10px] font-mono text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-semibold">&Delta;&omega; &le; 10&deg;</span>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-neutral-700 font-medium">Perturbation Strength (&lambda;)</span>
+                                    <span class="font-mono text-emerald-900 font-bold" id="val-upg-str">12.0</span>
+                                </div>
+                                <input type="range" id="slider-upg-str" class="w-full" min="1" max="30" step="0.5" value="12">
+                            </div>
+
+                            <p class="text-[11px] text-neutral-600">
+                                Inter-channel Phase Coupling: <strong class="text-emerald-800 font-semibold">Active (Zero Chromatic Fringing)</strong>
+                            </p>
+                        </div>
+
+                        <!-- Comparative Metrics Summary (Warm Neutral Card) -->
+                        <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200/80 p-3.5 space-y-2 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-neutral-600">Baseline CVPR '24 RA:</span>
+                                <span class="text-rose-700 font-semibold font-mono">35.9% (mCE: 81.0%)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-neutral-600">Ada-SFA (DSBC+PCCM) RA:</span>
+                                <span class="text-emerald-700 font-bold font-mono">38.5% (mCE: 78.1%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: 4-Way Mode Comparative Grid (White Cards) -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-sm text-neutral-950">4-Way Mode Evaluation & Spectral Comparison</h3>
+                            <span class="text-xs text-neutral-500 font-medium" id="upg-clean-status">Clean Input Loaded (256x256)</span>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4" id="upgrades-modes-container">
+                            <!-- Dynamically populated by upgrades_view.js -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== TAB 3: Augmentation Suite ==================== -->
+            <section id="tab-compare" class="tab-content">
+                <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-neutral-950 tracking-tight">Multi-Method Augmentation Comparison</h2>
+                        <p class="text-xs text-neutral-500 mt-1">
+                            Side-by-side evaluation of AFA alongside APR (ICCV '21), AugMix (ICLR '20), MixUp, CutMix, and Gaussian Noise.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-medium text-neutral-700 shrink-0">Select Input:</span>
+                        <select class="sample-image-select rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none"></select>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" id="aug-comparison-grid">
+                    <!-- Dynamically populated by augmentations_view.js -->
+                </div>
+            </section>
+
+            <!-- ==================== TAB 4: Dual Normalization ==================== -->
+            <section id="tab-dubn" class="tab-content">
+                <div class="grid gap-6 lg:grid-cols-2">
+                    
+                    <!-- Left: Routing Diagram (White Card with Black Button) -->
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
+                            <div>
+                                <h3 class="font-bold text-sm text-neutral-950">Dual Batch Normalization (DuBN) Routing</h3>
+                                <p class="text-[11px] text-neutral-500">Prevents clean activation distribution corruption</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-route-toggle active rounded-full bg-neutral-950 px-3.5 py-1 text-xs font-semibold text-white transition" data-route="M">Main (M)</button>
+                                <button class="btn-route-toggle rounded-full border border-neutral-300 bg-white px-3.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-950 hover:text-white transition" data-route="A">Aux (A)</button>
+                            </div>
+                        </div>
+
+                        <!-- Routing Schema Mockup (Warm Neutral Blocks) -->
+                        <div class="space-y-3 font-mono text-xs">
+                            <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200 p-3 text-center text-neutral-800 font-semibold shadow-sm">
+                                Input Batch X = [X_clean, X_AFA]
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="rounded-xl border-2 border-blue-500/40 bg-blue-50/40 p-3.5 text-center active" id="dubn-branch-main">
+                                    <strong class="text-blue-900 font-bold block text-sm">Main BN Branch (BN_M)</strong>
+                                    <span class="text-[11px] text-neutral-600">Clean Stats (\mu_M, \sigma_M)</span>
+                                </div>
+                                <div class="rounded-xl border border-neutral-200 bg-[#f8f7f4] p-3.5 text-center" id="dubn-branch-aux">
+                                    <strong class="text-purple-900 font-bold block text-sm">Auxiliary BN (BN_A)</strong>
+                                    <span class="text-[11px] text-neutral-600">Fourier Stats (\mu_A, \sigma_A)</span>
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200 p-3 text-center text-neutral-800 font-semibold shadow-sm">
+                                Shared Backbone Weights (&gamma;, &beta;, &Theta;)
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2">
+                            <button class="rounded-full bg-neutral-950 hover:bg-neutral-800 px-5 py-2 text-xs font-semibold text-white shadow-sm transition" id="btn-run-dubn-sim">
+                                Run DuBN Forward Simulation
+                            </button>
+                            <span class="text-[11px] text-neutral-500 font-mono">Batch: 32 | Features: 64</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Statistics & Loss (White Card) -->
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
+                            <h3 class="font-bold text-sm text-neutral-950">Distribution Drift & Dual Losses</h3>
+                            <span class="text-[10px] font-mono text-neutral-900 bg-neutral-100 border border-neutral-200 px-2.5 py-0.5 rounded-full font-semibold" id="badge-stat-drift">Shift Ratio: 2.14x</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200/80 p-3.5">
+                                <p class="text-[10px] uppercase font-bold text-neutral-500">Wasserstein Drift (&Delta;&mu;)</p>
+                                <p class="text-xl font-bold text-blue-700 mt-1 font-mono" id="val-wasserstein">0.342</p>
+                            </div>
+                            <div class="rounded-xl bg-[#f4f1eb] border border-neutral-200/80 p-3.5">
+                                <p class="text-[10px] uppercase font-bold text-neutral-500">Variance Ratio (&sigma;_A^2 / &sigma;_M^2)</p>
+                                <p class="text-xl font-bold text-purple-700 mt-1 font-mono" id="val-var-ratio">1.88x</p>
+                            </div>
+                        </div>
+
+                        <!-- Loss Metrics Grid -->
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="rounded-xl bg-[#f8f7f4] border border-neutral-200/80 p-2.5">
+                                <span class="text-neutral-500 text-[10px] block font-medium">CE Clean</span>
+                                <strong class="text-neutral-950 font-mono" id="val-ce-clean">0.052</strong>
+                            </div>
+                            <div class="rounded-xl bg-[#f8f7f4] border border-neutral-200/80 p-2.5">
+                                <span class="text-neutral-500 text-[10px] block font-medium">CE AFA</span>
+                                <strong class="text-neutral-950 font-mono" id="val-ce-afa">0.124</strong>
+                            </div>
+                            <div class="rounded-xl bg-[#f8f7f4] border border-neutral-200/80 p-2.5">
+                                <span class="text-neutral-500 text-[10px] block font-medium">Total ACE Loss</span>
+                                <strong class="text-emerald-700 font-mono" id="val-total-ace">0.176</strong>
+                            </div>
+                        </div>
+
+                        <!-- Chart Container -->
+                        <div class="h-44 w-full">
+                            <canvas id="chart-dubn-distributions"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==================== TAB 5: Fourier Error Heatmaps ==================== -->
+            <section id="tab-heatmaps" class="tab-content">
+                <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
+                    
+                    <!-- Left: 2D Canvas (White Card) -->
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-4">
+                            <div>
+                                <h3 class="font-bold text-sm text-neutral-950">2D Fourier Error Surface Heatmap</h3>
+                                <p class="text-[11px] text-neutral-500">Hover or click any (u, v) frequency coordinate to probe model error</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <select class="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none" id="heatmap-model-select">
+                                    <option value="rn18" selected>ResNet-18</option>
+                                    <option value="rn50">ResNet-50</option>
+                                    <option value="cct">CCT-14</option>
+                                </select>
+                                <select class="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none" id="heatmap-aug-select">
+                                    <option value="baseline">Standard Baseline</option>
+                                    <option value="augmix">AugMix</option>
+                                    <option value="afa" selected>AFA (Ours)</option>
+                                    <option value="augmix_afa">AugMix + AFA</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Heatmap Container -->
+                        <div class="flex justify-center items-center py-4">
+                            <div class="relative w-80 h-80 rounded-full overflow-hidden border-2 border-neutral-300 bg-[#060911] shadow-xl cursor-crosshair">
+                                <canvas id="heatmap-canvas" width="320" height="320" class="w-full h-full block"></canvas>
+                                <div id="heatmap-crosshair" class="absolute w-3.5 h-3.5 border-2 border-white rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none hidden shadow-lg"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Coordinate Probe & Radial Breakdown (White Card) -->
+                    <div class="space-y-6">
+                        
+                        <!-- Point Probe Card (White Card) -->
+                        <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+                                <h4 class="font-bold text-sm text-neutral-950">Frequency Coordinate Probe</h4>
+                                <span class="text-[10px] font-mono text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-semibold" id="probe-radius">11.3 cycles</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="bg-[#f4f1eb] p-2.5 rounded-xl border border-neutral-200/80">u: <strong class="text-blue-700 font-bold" id="probe-u">8.0</strong></div>
+                                <div class="bg-[#f4f1eb] p-2.5 rounded-xl border border-neutral-200/80">v: <strong class="text-blue-700 font-bold" id="probe-v">8.0</strong></div>
+                                <div class="bg-[#f4f1eb] p-2.5 rounded-xl border border-neutral-200/80">&phi;: <strong class="text-neutral-900 font-bold" id="probe-angle">45.0°</strong></div>
+                                <div class="bg-[#f4f1eb] p-2.5 rounded-xl border border-neutral-200/80">Gain: <strong class="text-emerald-700 font-bold" id="probe-gain">+50.2%</strong></div>
+                            </div>
+
+                            <div class="space-y-2 pt-2 border-t border-neutral-100 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-neutral-600">Baseline Error:</span>
+                                    <span class="text-rose-600 font-bold font-mono" id="probe-err-base">71.0%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neutral-600">AugMix Error:</span>
+                                    <span class="text-amber-700 font-bold font-mono" id="probe-err-augmix">48.2%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neutral-600">AFA Error (Ours):</span>
+                                    <span class="text-blue-700 font-bold font-mono" id="probe-err-afa">20.8%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neutral-600">AugMix + AFA Error:</span>
+                                    <span class="text-emerald-700 font-bold font-mono" id="probe-err-comb">14.1%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Radial Breakdown Chart (White Card) -->
+                        <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+                                <h4 class="font-bold text-sm text-neutral-950">Radial Error Profile</h4>
+                            </div>
+                            <div class="h-36 w-full">
+                                <canvas id="chart-radial-error"></canvas>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 text-[10px] text-center font-mono bg-[#f4f1eb] p-2 rounded-xl border border-neutral-200/80">
+                                <div>Low: <strong class="text-neutral-900 block font-bold" id="hm-low-err">--%</strong></div>
+                                <div>Mid: <strong class="text-neutral-900 block font-bold" id="hm-mid-err">--%</strong></div>
+                                <div>High: <strong class="text-neutral-900 block font-bold" id="hm-high-err">--%</strong></div>
+                                <div>Mean: <strong class="text-emerald-700 block font-bold" id="hm-mean-err">--%</strong></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==================== TAB 6: Empirical Benchmarks ==================== -->
+            <section id="tab-benchmarks" class="tab-content">
+                
+                <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm mb-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-neutral-950 tracking-tight">Empirical Robustness Leaderboard</h2>
+                            <p class="text-xs text-neutral-500 mt-1">111+ benchmark experimental runs from CVPR 2024 paper evaluation suite.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <select class="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none" id="benchmark-ds-select">
+                                <option value="ImageNet_C" selected>ImageNet-C (15 Corruptions)</option>
+                                <option value="ImageNet_C_bar">ImageNet-\bar{C} (10 Perceptual)</option>
+                                <option value="ImageNet_3DCC">ImageNet-3DCC (11 3D Views)</option>
+                                <option value="ImageNet_P">ImageNet-P (Perturbations)</option>
+                            </select>
+                            <select class="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none" id="benchmark-model-select">
+                                <option value="rn18" selected>ResNet-18</option>
+                                <option value="rn50">ResNet-50</option>
+                                <option value="cct">CCT-14</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-neutral-200">
+                        <table class="w-full text-left text-xs text-neutral-700">
+                            <thead class="bg-[#f4f1eb] text-[11px] uppercase tracking-wider text-neutral-600 font-semibold border-b border-neutral-200">
+                                <tr>
+                                    <th class="p-3">Rank</th>
+                                    <th class="p-3">Method</th>
+                                    <th class="p-3">Model</th>
+                                    <th class="p-3">Mean Robust Acc</th>
+                                    <th class="p-3">Mean Error (mCE)</th>
+                                    <th class="p-3">mCE Gain vs Base</th>
+                                    <th class="p-3">Severity 1-5</th>
+                                </tr>
+                            </thead>
+                            <tbody id="benchmark-leaderboard-tbody" class="divide-y divide-neutral-100 font-mono">
+                                <!-- Populated dynamically by benchmarks_view.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-4">
+                        <h4 class="font-bold text-sm text-neutral-950">5-Cluster Corruption Radar Profile</h4>
+                        <div class="h-64 w-full">
+                            <canvas id="chart-benchmark-radar"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-4">
+                        <h4 class="font-bold text-sm text-neutral-950">Severity Level Degradation Curve (1 to 5)</h4>
+                        <div class="h-64 w-full">
+                            <canvas id="chart-severity-decay"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ==================== TAB 7: Live Model Inference ==================== -->
+            <section id="tab-inference" class="tab-content">
+                <div class="grid gap-6 lg:grid-cols-[340px_1fr]">
+                    
+                    <!-- Left: Controls (White Card) -->
+                    <div class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-5">
+                        <div class="border-b border-neutral-100 pb-4">
+                            <h3 class="font-bold text-sm text-neutral-950">Inference Setup</h3>
+                            <p class="text-[11px] text-neutral-500">Test models under real ImageNet-C corruptions</p>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-medium text-neutral-700">Test Sample Image</label>
+                            <select class="sample-image-select w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none"></select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-medium text-neutral-700">Corruption Type</label>
+                            <select class="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 shadow-sm outline-none" id="inference-corruption-select"></select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-neutral-700 font-medium">Severity Level</span>
+                                <span class="font-mono text-neutral-950 font-bold bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-[11px]" id="val-inf-severity">Level 3</span>
+                            </div>
+                            <input type="range" id="slider-inf-severity" class="w-full" min="1" max="5" step="1" value="3">
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        
+                        <!-- Visual Inputs (White Cards) -->
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-3 shadow-sm hover:shadow-md transition">
+                                <span class="block text-xs font-semibold text-neutral-600 mb-2">Clean Input</span>
+                                <div class="aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                                    <img id="inf-clean-img" src="" alt="Clean Test" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+
+                            <div class="rounded-2xl border-2 border-rose-200 bg-rose-50/20 p-3 shadow-sm hover:shadow-md transition">
+                                <span class="block text-xs font-semibold text-rose-700 mb-2">Corrupted Input</span>
+                                <div class="aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-rose-200">
+                                    <img id="inf-corrupted-img" src="" alt="Corrupted Test" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prediction Probabilities (White Cards) -->
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <!-- Baseline -->
+                            <div class="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between border-b border-neutral-100 pb-2">
+                                    <h4 class="font-bold text-xs text-rose-700 uppercase tracking-wider">Baseline Model (ERM)</h4>
+                                    <span class="text-[10px] font-mono text-neutral-700 font-bold" id="inf-base-conf">--%</span>
+                                </div>
+                                <div class="text-[10px] text-neutral-500 font-mono" id="inf-base-entropy">Entropy: --</div>
+                                <div id="bars-baseline-model" class="space-y-2 text-xs"></div>
+                            </div>
+
+                            <!-- AFA Model -->
+                            <div class="rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/10 p-5 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between border-b border-neutral-100 pb-2">
+                                    <h4 class="font-bold text-xs text-emerald-800 uppercase tracking-wider">AFA Model (Ours)</h4>
+                                    <span class="text-[10px] font-mono text-emerald-700 font-bold" id="inf-afa-conf">--%</span>
+                                </div>
+                                <div class="text-[10px] text-neutral-500 font-mono" id="inf-afa-entropy">Entropy: --</div>
+                                <div id="bars-afa-model" class="space-y-2 text-xs"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- ==================== Presentation Modal Deck ==================== -->
+    <div id="presentation-modal" class="presentation-overlay">
+        <div class="presentation-modal-container">
+            <div class="presentation-navbar">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-neutral-950 bg-white px-3 py-1 rounded-full border border-neutral-300 shadow-sm">
+                        Research Presentation
+                    </span>
+                    <span class="text-xs font-mono font-bold text-neutral-600" id="deck-counter">Slide 1 of 11</span>
+                </div>
+                <button class="rounded-full border border-neutral-300 bg-white hover:bg-neutral-950 hover:text-white px-3.5 py-1.5 text-xs font-medium text-neutral-800 shadow-sm transition" id="btn-close-deck">
+                    Exit Presentation
+                </button>
+            </div>
+
+            <div class="presentation-viewport">
+                <h1 class="slide-heading" id="slide-title"></h1>
+                <h3 class="slide-subheading" id="slide-subtitle"></h3>
+                <div class="slide-body" id="slide-content"></div>
+            </div>
+
+            <div class="presentation-toolbar">
+                <button class="rounded-full border border-neutral-300 bg-white hover:bg-neutral-950 hover:text-white px-4 py-2 text-xs font-semibold text-neutral-800 shadow-sm transition" id="btn-prev-slide">
+                    ← Previous Slide
+                </button>
+                <span class="text-xs text-neutral-500 font-medium hidden sm:inline-block"> </span>
+                <button class="rounded-full bg-neutral-950 hover:bg-neutral-800 px-5 py-2 text-xs font-semibold text-white shadow-sm transition" id="btn-next-slide">
+                    Next Slide →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Controllers -->
+    <script src="js/app.js?v=2.8"></script>
+    <script src="js/fourier_playground.js?v=2.8"></script>
+    <script src="js/upgrades_view.js?v=2.8"></script>
+    <script src="js/augmentations_view.js?v=2.8"></script>
+    <script src="js/dubn_view.js?v=2.8"></script>
+    <script src="js/heatmaps_view.js?v=2.8"></script>
+    <script src="js/benchmarks_view.js?v=2.8"></script>
+    <script src="js/inference_view.js?v=2.8"></script>
+    <script src="js/presentation.js?v=2.8"></script>
+</body>
+</html>

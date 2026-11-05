@@ -27,6 +27,11 @@ api/storage/*.bin
 api/bulletins.json      
 api/logs/               
 
+# ─── Frontend ───────────────────────────────────────────────────────────────
+frontend/dist/
+frontend/build/
+.vite/
+
 # ─── ML ─────────────────────────────────────────────────────────────────────
 ml/venv/               
 ml/model.joblib         

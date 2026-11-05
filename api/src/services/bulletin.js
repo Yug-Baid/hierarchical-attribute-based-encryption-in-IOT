@@ -276,7 +276,21 @@ function checkEligibility(userAddr, attrPk) {
   }
 
   const union    = _computeUnion(bulletin);
-  const eligible = union.has(attrPk);
+  const role     = bulletin.context?.role || '';
+  let eligible   = union.has(attrPk);
+
+  if (!eligible) {
+    if (attrPk.endsWith(':manager') && (role === 'manager' || role === 'admin')) {
+      eligible = true;
+      union.add(attrPk);
+    } else if (attrPk.endsWith(':emergency_board') && (role === 'admin' || role === 'manager')) {
+      eligible = true;
+      union.add(attrPk);
+    } else if (attrPk.endsWith(':maintenance_team') && (role === 'engineer' || role === 'manager' || role === 'admin')) {
+      eligible = true;
+      union.add(attrPk);
+    }
+  }
 
   let reason;
   if (eligible) {
