@@ -291,7 +291,14 @@ SVM (RBF Kernel) & 99.3\% & 603.00 & 1200.0 & No (Heavy) \\
 }
 \end{table}
 
-As documented in Table~\ref{tab:ml_benchmark}, the Decision Tree achieves the highest accuracy ($99.7\%$) while reducing prediction latency by $92.7\%$ compared to Naive Bayes and $99.6\%$ compared to SVM ($4.31 \times 10^3$ clock cycles), executing in $1.8\text{ ms}$ on gateway servers.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{images/fig1_edge_ml_benchmark.png}
+\caption{Comparative evaluation of edge machine learning classifiers: (a) classification accuracy, (b) prediction latency, and (c) computational complexity in clock cycles.}
+\label{fig:edge_ml_benchmark}
+\end{figure}
+
+As documented in Table~\ref{tab:ml_benchmark} and visually depicted in Fig.~\ref{fig:edge_ml_benchmark}, the Decision Tree achieves the highest accuracy ($99.7\%$) while reducing prediction latency by $92.7\%$ compared to Naive Bayes and $99.6\%$ compared to SVM ($4.31 \times 10^3$ clock cycles), executing in $1.8\text{ ms}$ on gateway servers.
 
 \subsection{Payload Splitting System Gains (CASE Algorithm 1)}
 By isolating sensitive payload data $\nabla_i''$ from contextual telemetry $\nabla_i'$, our implementation realizes substantial reductions in physical network transmission metrics and cryptographic payload overhead, summarized in Table~\ref{tab:payload_splitting}.
@@ -339,6 +346,13 @@ Decryption (3-Clause Critical) & 4,212 & Bilinear Pairing Map \\ \midrule
 
 \begin{figure}[t]
 \centering
+\includegraphics[width=\columnwidth]{images/fig2_before_vs_after_pipeline.png}
+\caption{Comparative performance evaluation: (a) end-to-end data ingestion lifecycle comparing manual static HABE against our autonomous pipeline, and (b) cryptographic pairing encryption speedup achieved through payload splitting.}
+\label{fig:lifecycle_speedup}
+\end{figure}
+
+\begin{figure}[t]
+\centering
 \includegraphics[width=\columnwidth]{images/fig_crypto_benchmarks.png}
 \caption{HABE cryptographic pairing latency across hierarchy depths and experimental confirmation of constant-time $O(1)$ decryption.}
 \label{fig:crypto_bench}
@@ -346,9 +360,9 @@ Decryption (3-Clause Critical) & 4,212 & Bilinear Pairing Map \\ \midrule
 
 The empirical benchmarks demonstrate three fundamental results:
 \begin{enumerate}
-    \item \textbf{Cryptographic Pairing Speedup:} Payload splitting reduces pairing encryption latency from $4,205\text{ ms}$ to $2,850\text{ ms}$ (\textbf{32.3\% speedup}).
-    \item \textbf{Decryption Invariance:} Decryption time remains flat at $\approx 4,210\text{ ms}$ across 1-attribute, 2-attribute, and 3-clause policies, confirming Theorem~1.
-    \item \textbf{Total Workflow Acceleration:} Comparing manual static HABE ($33.1\text{ s}$) against our autonomous pipeline ($8.91\text{ s}$) yields an overall \textbf{73.1\% latency drop} ($3.71\times$ faster).
+    \item \textbf{Cryptographic Pairing Speedup:} As illustrated in Fig.~\ref{fig:lifecycle_speedup}(b), payload splitting reduces pairing encryption latency from $4,212\text{ ms}$ to $2,853\text{ ms}$ (\textbf{32.3\% speedup}).
+    \item \textbf{Decryption Invariance:} Decryption time remains flat at $\approx 4,210\text{ ms}$ across 1-attribute, 2-attribute, and 3-clause policies (Fig.~\ref{fig:crypto_bench}(b)), confirming Theorem~1.
+    \item \textbf{Total Workflow Acceleration:} As depicted in Fig.~\ref{fig:lifecycle_speedup}(a), comparing manual static HABE ($33.1\text{ s}$) against our autonomous pipeline ($8.91\text{ s}$) yields an overall \textbf{73.1\% latency drop} ($3.71\times$ faster).
 \end{enumerate}
 All 146 test vectors completed with a \textbf{100\% pass rate}.
 
