@@ -60,107 +60,90 @@ def clean_spines(ax):
     ax.spines['right'].set_visible(False)
 
 # ===========================================================================
-# 1. FIG_HABE_ARCHITECTURE: Clean Academic Systems Architecture Diagram
+# 1. FIG_HABE_ARCHITECTURE: Clean Academic Hierarchical Tree Architecture
 # ===========================================================================
 def generate_habe_architecture():
     print("[1/6] Generating clean fig_habe_architecture.png...")
-    fig, ax = plt.subplots(figsize=(10, 5.2), dpi=300)
+    fig, ax = plt.subplots(figsize=(7.2, 3.8), dpi=300)
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 100)
     ax.axis('off')
 
-    # Color scheme for architectural tiers
-    c_box_bg = '#f8fafc'
-    c_box_border = '#334155'
-    c_hl_bg = '#eff6ff'
-    c_hl_border = '#1e3a8a'
-    c_gate_bg = '#f0fdf4'
-    c_gate_border = '#166534'
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#ffffff')
 
-    def draw_box(x, y, w, h, title, subtitle="", bg=c_box_bg, border=c_box_border, lw=1.0):
-        rect = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.2,rounding_size=1.0",
-                              facecolor=bg, edgecolor=border, linewidth=lw, zorder=2)
-        ax.add_patch(rect)
-        if subtitle:
-            ax.text(x + w/2, y + h*0.62, title, ha='center', va='center', fontsize=9, fontweight='bold', color='#0f172a', zorder=3)
-            ax.text(x + w/2, y + h*0.28, subtitle, ha='center', va='center', fontsize=7.5, color='#475569', zorder=3)
-        else:
-            ax.text(x + w/2, y + h/2, title, ha='center', va='center', fontsize=8.5, fontweight='bold', color='#0f172a', zorder=3)
+    def draw_node(cx, cy, w, h, text, font_size=11):
+        x = cx - w / 2
+        y = cy - h / 2
+        box = FancyBboxPatch(
+            (x, y), w, h,
+            boxstyle="round,pad=0.2,rounding_size=1.2",
+            facecolor="#ffffff",
+            edgecolor="#1f2937",
+            linewidth=1.2,
+            zorder=3
+        )
+        ax.add_patch(box)
+        ax.text(cx, cy, text, ha='center', va='center', fontsize=font_size, color='#111827', zorder=4)
 
-    def draw_arrow(x1, y1, x2, y2, label="", color='#475569', lw=1.0, ls='-'):
-        ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                    arrowprops=dict(arrowstyle="->", color=color, lw=lw, linestyle=ls), zorder=4)
-        if label:
-            mx, my = (x1 + x2)/2, (y1 + y2)/2
-            ax.text(mx + 1.2, my, label, fontsize=7.2, color='#334155', va='center', zorder=5)
+    def draw_arrow(x1, y1, x2, y2):
+        ax.annotate(
+            '', xy=(x2, y2), xytext=(x1, y1),
+            arrowprops=dict(
+                arrowstyle="-|>",
+                color="#1f2937",
+                lw=1.1,
+                mutation_scale=10
+            ),
+            zorder=2
+        )
 
-    # Section Headers
-    ax.text(17, 95, "Tiered Authority Hierarchy", ha='center', fontsize=10.5, fontweight='bold', color='#1e3a8a')
-    ax.text(50, 95, "Edge Perception & Encryption", ha='center', fontsize=10.5, fontweight='bold', color='#1e3a8a')
-    ax.text(83, 95, "Zero-Trust Blockchain Verification", ha='center', fontsize=10.5, fontweight='bold', color='#1e3a8a')
+    # Level 0 (Company)
+    c_y = 86
+    draw_node(50, c_y, 22, 11, "Company (RM)", font_size=11)
 
-    # Subsystem Boundary Boxes (Subtle dashed backgrounds)
-    for bx, by, bw, bh in [(3, 5, 28, 86), (36, 5, 28, 86), (69, 5, 28, 86)]:
-        panel = patches.Rectangle((bx, by), bw, bh, linewidth=0.7, edgecolor='#cbd5e1', facecolor='#fafafa', linestyle=':', zorder=1)
-        ax.add_patch(panel)
+    # Level 1 (Plants)
+    p_y = 60
+    draw_node(27, p_y, 20, 11, "Plant A (DM)", font_size=10.5)
+    draw_node(73, p_y, 20, 11, "Plant B (DM)", font_size=10.5)
 
-    # --- COLUMN 1: 3-TIER HIERARCHY ---
-    # Root Master (Company)
-    draw_box(5, 74, 24, 13, "Root Master (Company)", "MK₀ = (mk₀, SK₀=0, Q₀=mk₀P₀)", bg=c_hl_bg, border=c_hl_border, lw=1.2)
-    draw_arrow(17, 74, 17, 61, "CreateDM")
+    # Level 2 (Areas)
+    a_y = 34
+    draw_node(13.5, a_y, 18, 11, "Area A1 (SDM)", font_size=9.5)
+    draw_node(37.5, a_y, 18, 11, "Area A2 (SDM)", font_size=9.5)
+    draw_node(62.5, a_y, 18, 11, "Area B1 (SDM)", font_size=9.5)
+    draw_node(86.5, a_y, 18, 11, "Area B2 (SDM)", font_size=9.5)
 
-    # Domain Master (Plant A)
-    draw_box(5, 48, 24, 13, "Domain Master (Plant A)", "SK₁ = mk₀P₁,  Q₁ = mk₁P₀", bg=c_box_bg)
-    draw_arrow(17, 48, 17, 35, "CreateDM")
+    # Level 3 (Users)
+    u_y = 10
+    draw_node(13.5, u_y, 17, 9, "Users", font_size=10)
+    draw_node(37.5, u_y, 17, 9, "Users", font_size=10)
+    draw_node(62.5, u_y, 17, 9, "Users", font_size=10)
+    draw_node(86.5, u_y, 17, 9, "Users", font_size=10)
 
-    # Sub-Domain Master (Area A1)
-    draw_box(5, 22, 24, 13, "Sub-Domain Master (Area A1)", "SK₂ = SK₁ + mk₁P₂,  Q₂ = mk₂P₀", bg=c_box_bg)
-    draw_arrow(17, 22, 17, 12, "CreateUser")
+    # Arrows from Company to Plants
+    draw_arrow(46, c_y - 5.5, 30, p_y + 5.5)
+    draw_arrow(54, c_y - 5.5, 70, p_y + 5.5)
 
-    # User / Operator Alice
-    draw_box(5, 7, 24, 8, "User / Operator Alice", "SK_u = {SK_i,u, SK_i,u,a}", bg='#f1f5f9', border='#64748b')
+    # Arrows from Plant A to Areas A1, A2
+    draw_arrow(23, p_y - 5.5, 16, a_y + 5.5)
+    draw_arrow(31, p_y - 5.5, 35, a_y + 5.5)
 
-    # --- COLUMN 2: EDGE PERCEPTION & ENCRYPTION ---
-    # Sensor Stream
-    draw_box(38, 74, 24, 13, "4-Channel IIoT Sensors", "Temp, Vibration, Pressure, Gas", bg=c_box_bg)
-    draw_arrow(50, 74, 50, 61, "Telemetry ∇")
+    # Arrows from Plant B to Areas B1, B2
+    draw_arrow(69, p_y - 5.5, 65, a_y + 5.5)
+    draw_arrow(77, p_y - 5.5, 84, a_y + 5.5)
 
-    # Layer 1 Decision Tree
-    draw_box(38, 48, 24, 13, "Layer 1: Edge Perception", "Decision Tree (1.8 ms, 99.7%)", bg=c_hl_bg, border=c_hl_border, lw=1.2)
-    draw_arrow(50, 48, 50, 35, "State & DNF Policy")
-
-    # Payload Splitting & HABE Encrypt
-    draw_box(38, 22, 24, 13, "Payload Splitting & Encrypt", "∇ = ∇' ∪ ∇'',  V = f ⊕ H₂(e(·))", bg=c_box_bg)
-    draw_arrow(50, 22, 50, 14, "Ciphertext CT")
-
-    # Ciphertext Output
-    draw_box(38, 7, 24, 7, "HABE Ciphertext CT", "(A, U₀, U_chain, U_attr, V)", bg='#f1f5f9', border='#64748b')
-
-    # --- INTER-SUBSYSTEM FLOW ---
-    draw_arrow(62, 54, 70, 78, "Store Hash", color='#1e3a8a', lw=1.0)
-    draw_arrow(29, 11, 70, 11, "Decrypt Request", color='#475569', lw=1.0, ls='--')
-
-    # --- COLUMN 3: BLOCKCHAIN & ZERO-TRUST GATES ---
-    # Hyperledger Besu
-    draw_box(71, 74, 24, 13, "Hyperledger Besu (QBFT)", "Smart Contract: HABERegistry\nh = SHA-256(CT)", bg=c_hl_bg, border=c_hl_border, lw=1.2)
-    draw_arrow(83, 74, 83, 61, "Verify Integrity")
-
-    # Gate 1: Integrity Trap
-    draw_box(71, 48, 24, 13, "Gate 1: Blockchain Integrity", "SHA-256(CT_local) == h_stored\nAbort if tampered (<10 ms)", bg=c_gate_bg, border=c_gate_border, lw=1.1)
-    draw_arrow(83, 48, 83, 35, "Pass (Verified)")
-
-    # Gate 2: HABE Pairing Decryption
-    draw_box(71, 22, 24, 13, "Gate 2: HABE Pairing Engine", "f = V ⊕ H₂(N / (D₁ · D₂))\nConstant-Time O(1) ~4,210 ms", bg=c_gate_bg, border=c_gate_border, lw=1.1)
-    draw_arrow(83, 22, 83, 14, "Plaintext")
-
-    # Recovered Plaintext
-    draw_box(71, 7, 24, 7, "Recovered Payload f", "Access Granted to Alice", bg='#f1f5f9', border='#64748b')
+    # Straight down arrows from Areas to Users
+    draw_arrow(13.5, a_y - 5.5, 13.5, u_y + 4.5)
+    draw_arrow(37.5, a_y - 5.5, 37.5, u_y + 4.5)
+    draw_arrow(62.5, a_y - 5.5, 62.5, u_y + 4.5)
+    draw_arrow(86.5, a_y - 5.5, 86.5, u_y + 4.5)
 
     plt.tight_layout()
     for d in DIRS:
         plt.savefig(os.path.join(d, 'fig_habe_architecture.png'), dpi=300, bbox_inches='tight')
     plt.close()
-    print("  -> Saved clean fig_habe_architecture.png")
+    print("  -> Saved clean tree fig_habe_architecture.png")
 
 # ===========================================================================
 # 2. FIG_CRYPTO_BENCHMARKS & FIG4: Clean Pairing Latencies & O(1) Decryption
@@ -468,3 +451,4 @@ if __name__ == '__main__':
     generate_system_improvements()
     generate_master_poster_summary()
     print("\nAll figures regenerated successfully with clean, publication-grade academic formatting!")
+
