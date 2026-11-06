@@ -1,4 +1,4 @@
-# IEEE Conference Report: Blockchain-Aided HABE with Dual-Layer ML
+# IEEE Conference Report: Autonomous Context-Aware Hierarchical Access Control with Consortium Blockchain for Industrial IoT
 
 This directory contains the complete, publication-grade LaTeX manuscript formatted according to the **IEEE Conference Template** standard (two-column `IEEEtran`).
 
