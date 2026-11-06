@@ -168,7 +168,14 @@ To eliminate human configuration errors while preserving high cryptographic thro
 \subsection{Layer 1: Sensor Perception ML (Edge Policy Engine)}
 Deployed on edge gateway devices, Layer~1 eliminates manual access policy writing. An ultra-light Decision Tree processes 4-channel telemetry ($\text{temperature}, \text{vibration}, \text{pressure}, \text{gas\_ppm}$) in $1.8\text{ ms}$ on the server ($2.16\text{ s}$ on edge MCU), categorizing the operating state into \texttt{NORMAL}, \texttt{WARNING}, or \texttt{CRITICAL}.
 
-Table~\ref{tab:telemetry_policy} details the structured schema for live telemetry ingestion and the resulting autonomous dynamic DNF policy formulated by the edge classifier.
+Fig.~\ref{fig:sensor_data_schema} illustrates both the multi-channel training dataset structure and the live telemetry ingestion payload. Table~\ref{tab:telemetry_policy} summarizes the resulting autonomous dynamic DNF policy formulated by the edge classifier.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{images/fig_sensor_data_schema.png}
+\caption{Sensor telemetry dataset structure and autonomous dynamic DNF policy formulation payload: (a) representative rows from the 4-channel training dataset (\texttt{sensor\_telemetry.csv}), and (b) live telemetry ingestion payload with edge classification and policy derivation.}
+\label{fig:sensor_data_schema}
+\end{figure}
 
 \begin{table}[htbp]
 \caption{Edge Telemetry Ingestion \& Autonomous DNF Policy Formulation}
@@ -210,7 +217,14 @@ To prevent introducing latency onto the user key issuance critical path, the sys
 \end{equation}
 where $\tau_a$ represents attribute risk thresholds ($\tau_{\text{sensor}}=0.45, \tau_{\text{telemetry}}=0.50, \tau_{\text{maint}}=0.55, \tau_{\text{plant}}=0.60, \tau_{\text{control}}=0.70, \tau_{\text{admin}}=0.85$). When the user subsequently requests an attribute key via \texttt{POST /register/user}, the gateway performs a localized set lookup in $<5\text{ ms}$, entirely bypassing runtime model inference.
 
-Table~\ref{tab:user_bulletin} summarizes the Public Bulletin cached registration record and attribute evaluation output.
+The complete in-memory JSON structure of the Public Bulletin is illustrated in Fig.~\ref{fig:bulletin_schema}, and its attribute evaluation parameters are summarized in Table~\ref{tab:user_bulletin}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{images/fig_bulletin_schema.png}
+\caption{User Identity Public Bulletin schema (\texttt{bulletin.json}) cached in memory: user identity, context attributes, Random Forest probability evaluations with qualification thresholds, and granted \texttt{UNION\_ATTRS}.}
+\label{fig:bulletin_schema}
+\end{figure}
 
 \begin{table}[htbp]
 \caption{User Identity Public Bulletin Schema \& Attribute Scoring}
